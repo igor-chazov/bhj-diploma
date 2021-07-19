@@ -4,21 +4,29 @@
  * расходов конкретного счёта
  * */
 class TransactionsPage {
+  lastOptions = null;
   /**
    * Если переданный элемент не существует,
    * необходимо выкинуть ошибку.
    * Сохраняет переданный элемент и регистрирует события
    * через registerEvents()
    * */
-  constructor( element ) {
+  constructor(element) {
 
+    if (!element) {
+      throw Error('Элемент не найден');
+    }
+
+    this.element = element;
+    this.registerEvents();
+    console.log(element);
   }
 
   /**
    * Вызывает метод render для отрисовки страницы
    * */
   update() {
-
+    this.render();
   }
 
   /**
@@ -28,7 +36,26 @@ class TransactionsPage {
    * TransactionsPage.removeAccount соответственно
    * */
   registerEvents() {
+    this.element.addEventListener('click', (e) => {
+      event.preventDefault();
+      const { target } = e;
 
+      if (!target.matches('.remove-account')) return;
+      if (document.querySelector('.content-title').textContent === 'Название счёта') return;
+
+      if (target.matches('.remove-account')) {
+        this.removeAccount();
+      }
+
+      if (!target.matches('.transaction__remove')) return;
+
+      if (target.matches('.transaction__remove')) {
+        console.log('transaction__remove');
+        console.log(target.dataset.id);
+        this.removeTransaction(target.dataset.id);
+      }
+
+    });
   }
 
   /**
@@ -41,6 +68,54 @@ class TransactionsPage {
    * для обновления приложения
    * */
   removeAccount() {
+    showModal(this.element);
+
+    function showModal(element) {
+      let div = document.createElement('div');
+      div.className = 'modal'
+      div.id = 'modal'
+      div.style.cssText = `display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      user-select: none
+      ;`
+      div.innerHTML = `
+      <div class="modal__content" style=" background-color: #fff; padding: 10px; border-radius: 5px">
+        <div class="modal__header">
+          <div class="modal__title" style="font-size: 20px; padding-bottom: 20px; border-bottom: 1px solid grey">Вы действительно хотите удалить счёт?</div>
+        </div>
+        <div class="modal__footer" style="display: flex; justify-content: flex-end; padding-top: 10px; color: blue; font-weight: bold">
+          <button class="modal__close" type="button" style="border: none; padding-right: 20px" onclick="document.getElementById('modal').remove()">Отменить</button>
+          <button class="modal__close" type="button" id="modal__closeOk" style="border: none" >ОК</button>
+        </div>
+      </div>`;
+
+      element.prepend(div);
+    }
+
+    document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+      if (!document.querySelector('#modal__closeOk')) return;
+      document.getElementById('modal').remove();
+      /**  
+      * ! Неправильный ответ сервера?
+      **/
+      Account.remove(this.lastOptions, response => {
+
+        if (response.success === true) {
+          console.log(response);
+          App.updateWidgets();
+        }
+
+      })
+
+      this.clear();
+    });
 
   }
 
@@ -50,7 +125,54 @@ class TransactionsPage {
    * По удалению транзакции вызовите метод App.update(),
    * либо обновляйте текущую страницу (метод update) и виджет со счетами
    * */
-  removeTransaction( id ) {
+  removeTransaction(id) {
+    showModal(this.element);
+
+    function showModal(element) {
+      let div = document.createElement('div');
+      div.className = 'modal'
+      div.id = 'modal'
+      div.style.cssText = `display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      user-select: none
+      ;`
+      div.innerHTML = `
+      <div class="modal__content" style=" background-color: #fff; padding: 10px; border-radius: 5px">
+        <div class="modal__header">
+          <div class="modal__title" style="font-size: 20px; padding-bottom: 20px; border-bottom: 1px solid grey">Вы действительно хотите удалить эту транзакцию?</div>
+        </div>
+        <div class="modal__footer" style="display: flex; justify-content: flex-end; padding-top: 10px; color: blue; font-weight: bold">
+          <button class="modal__close" type="button" style="border: none; padding-right: 20px" onclick="document.getElementById('modal').remove()">Отменить</button>
+          <button class="modal__close" type="button" id="modal__closeOk" style="border: none" >ОК</button>
+        </div>
+      </div>`;
+
+      element.prepend(div);
+    }
+
+    document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+      if (!document.querySelector('#modal__closeOk')) return;
+      document.getElementById('modal').remove();
+      /**  
+      * ! Непроверенный метод, нет ответа сервера?
+      **/
+      Transaction.remove(id, response => {
+
+        if (response.success === true) {
+          console.log(response);
+          App.update();
+        }
+
+      })
+
+    });
 
   }
 
@@ -60,7 +182,28 @@ class TransactionsPage {
    * Получает список Transaction.list и полученные данные передаёт
    * в TransactionsPage.renderTransactions()
    * */
-  render(options){
+  render(options) {
+
+    if (!options) return;
+
+    this.lastOptions = options;
+    const { account_id } = this.lastOptions;
+    Account.get(account_id, response => {
+
+      if (response.success === true) {
+        const { name } = response.data;
+        this.renderTitle(name);
+      }
+
+    });
+
+    Transaction.list(null, response => {
+      console.log(account_id);
+      if (response.success === true) {
+        console.log(response);
+        this.renderTransactions(response.data);
+      }
+    });
 
   }
 
@@ -70,37 +213,77 @@ class TransactionsPage {
    * Устанавливает заголовок: «Название счёта»
    * */
   clear() {
-
+    this.renderTransactions([]);
+    this.renderTitle('Название счёта');
   }
 
   /**
    * Устанавливает заголовок в элемент .content-title
    * */
-  renderTitle(name){
-
+  renderTitle(name) {
+    document.querySelector('.content-title').textContent = name;
   }
 
   /**
    * Форматирует дату в формате 2019-03-10 03:20:41 (строка)
    * в формат «10 марта 2019 г. в 03:20»
    * */
-  formatDate(date){
+  formatDate(date) {
+    console.log(date);
+    let data = new Date(date);
 
+    let day = data.getDate();
+    let month = data.toLocaleString('default', { month: 'long' });
+    let year = data.getFullYear();
+    let hour = data.getHours();
+    let minutes = data.getMinutes();
+
+    day = day < 10 ? '0' + day : day;
+    hour = hour < 10 ? '0' + hour : hour;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+
+    return `${day} ${month} ${year} г. в ${hour}:${minutes}`;
   }
 
   /**
    * Формирует HTML-код транзакции (дохода или расхода).
    * item - объект с информацией о транзакции
    * */
-  getTransactionHTML(item){
+  getTransactionHTML(item) {
+    const { created_at, id, name, sum, type } = item;
 
+    return `
+    <div class="transaction transaction_${type} row">
+    <div class="col-md-7 transaction__details">
+      <div class="transaction__icon">
+          <span class="fa fa-money fa-2x"></span>
+      </div>
+      <div class="transaction__info">
+          <h4 class="transaction__title">${name}</h4>
+          <div class="transaction__date">${this.formatDate(created_at)}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="transaction__summ">
+        ${sum} <span class="currency">₽</span>
+      </div>
+    </div>
+    <div class="col-md-2 transaction__controls">
+      <button class="btn btn-danger transaction__remove" data-id="${id}">
+        <i class="fa fa-trash"></i>  
+      </button>
+    </div>
+</div>
+    `;
   }
 
   /**
    * Отрисовывает список транзакций на странице
    * используя getTransactionHTML
    * */
-  renderTransactions(data){
-
+  renderTransactions(data) {
+    for (let item of Array.from(data)) {
+      this.element.querySelector('.content').insertAdjacentHTML('beforeend', this.getTransactionHTML(item));
+    }
   }
 }

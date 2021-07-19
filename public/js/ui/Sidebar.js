@@ -18,7 +18,16 @@ class Sidebar {
    * при нажатии на кнопку .sidebar-toggle
    * */
   static initToggleButton() {
+    (document.querySelector('.sidebar-toggle')).addEventListener('click', () => {
+      event.preventDefault();
 
+      if (document.body.classList.contains('sidebar-open', 'sidebar-collapse')) {
+        document.body.classList.remove('sidebar-open', 'sidebar-collapse');
+      } else {
+        document.body.classList.add('sidebar-open', 'sidebar-collapse');
+      }
+
+    });
   }
 
   /**
@@ -29,6 +38,34 @@ class Sidebar {
    * выходу устанавливает App.setState( 'init' )
    * */
   static initAuthLinks() {
+    const menuLoginElement = document.querySelector('.menu-item_login');
+    menuLoginElement.addEventListener('click', () => {
+      event.preventDefault();
+      App.getModal('login').open();
 
+      if (App.getForm('login').element.lastElementChild.matches('.error')) {
+        App.getForm('login').element.lastElementChild.remove();
+      }
+
+      App.getForm('login').element.reset();
+    });
+
+    const menuRegisterElement = document.querySelector('.menu-item_register');
+    menuRegisterElement.addEventListener('click', () => {
+      event.preventDefault();
+      App.getModal('register').open();
+
+      if (App.getForm('register').element.lastElementChild.matches('.error')) {
+        App.getForm('register').element.lastElementChild.remove();
+      }
+
+      App.getForm('register').element.reset();
+    });
+
+    const menuLogoutElement = document.querySelector('.menu-item_logout');
+    menuLogoutElement.addEventListener('click', () => {
+      event.preventDefault();
+      User.logout();
+    });
   }
 }
