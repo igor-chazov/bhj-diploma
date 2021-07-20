@@ -19,14 +19,13 @@ class TransactionsPage {
 
     this.element = element;
     this.registerEvents();
-    console.log(element);
   }
 
   /**
    * Вызывает метод render для отрисовки страницы
    * */
   update() {
-    this.render();
+    this.render(this.lastOptions);
   }
 
   /**
@@ -40,19 +39,17 @@ class TransactionsPage {
       event.preventDefault();
       const { target } = e;
 
-      if (!target.matches('.remove-account')) return;
-      if (document.querySelector('.content-title').textContent === 'Название счёта') return;
-
-      if (target.matches('.remove-account')) {
+      if (target.matches('.remove-account') || target.closest('.remove-account')) {
+        if (document.querySelector('.content-title').textContent === 'Название счёта') return;
         this.removeAccount();
       }
 
-      if (!target.matches('.transaction__remove')) return;
+      if (target.closest('.transaction_income') && (target.matches('.transaction__remove') || target.matches('.fa-trash'))) {
+        this.removeTransaction(target.closest('.transaction__remove').dataset.id);
+      }
 
-      if (target.matches('.transaction__remove')) {
-        console.log('transaction__remove');
-        console.log(target.dataset.id);
-        this.removeTransaction(target.dataset.id);
+      if (target.closest('.transaction_expense') && (target.matches('.transaction__remove') || target.matches('.fa-trash'))) {
+        this.removeTransaction(target.closest('.transaction__remove').dataset.id);
       }
 
     });
@@ -72,8 +69,8 @@ class TransactionsPage {
 
     function showModal(element) {
       let div = document.createElement('div');
-      div.className = 'modal'
-      div.id = 'modal'
+      div.className = 'modal';
+      div.id = 'modal';
       div.style.cssText = `display: flex;
       justify-content: center;
       align-items: center;
@@ -100,20 +97,19 @@ class TransactionsPage {
     }
 
     document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+
       if (!document.querySelector('#modal__closeOk')) return;
+
       document.getElementById('modal').remove();
-      /**  
-      * ! Неправильный ответ сервера?
-      **/
-      Account.remove(this.lastOptions, response => {
+      const name = this.element.querySelector('.content-title').textContent;
+      const { account_id } = this.lastOptions;
+      Account.remove({ name: name, id: account_id }, response => {
 
         if (response.success === true) {
-          console.log(response);
           App.updateWidgets();
         }
 
       })
-
       this.clear();
     });
 
@@ -130,8 +126,8 @@ class TransactionsPage {
 
     function showModal(element) {
       let div = document.createElement('div');
-      div.className = 'modal'
-      div.id = 'modal'
+      div.className = 'modal';
+      div.id = 'modal';
       div.style.cssText = `display: flex;
       justify-content: center;
       align-items: center;
@@ -158,22 +154,18 @@ class TransactionsPage {
     }
 
     document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+
       if (!document.querySelector('#modal__closeOk')) return;
       document.getElementById('modal').remove();
-      /**  
-      * ! Непроверенный метод, нет ответа сервера?
-      **/
-      Transaction.remove(id, response => {
+      Transaction.remove({ id: id }, response => {
 
         if (response.success === true) {
-          console.log(response);
+          this.update();
           App.update();
         }
 
       })
-
     });
-
   }
 
   /**
@@ -193,16 +185,16 @@ class TransactionsPage {
       if (response.success === true) {
         const { name } = response.data;
         this.renderTitle(name);
+        Transaction.list(response.data, response => {
+
+          if (response.success === true) {
+            const { data } = response;
+            this.renderTransactions(data);
+          }
+
+        });
       }
 
-    });
-
-    Transaction.list(null, response => {
-      console.log(account_id);
-      if (response.success === true) {
-        console.log(response);
-        this.renderTransactions(response.data);
-      }
     });
 
   }
@@ -215,6 +207,7 @@ class TransactionsPage {
   clear() {
     this.renderTransactions([]);
     this.renderTitle('Название счёта');
+    this.lastOptions = null;
   }
 
   /**
@@ -229,7 +222,6 @@ class TransactionsPage {
    * в формат «10 марта 2019 г. в 03:20»
    * */
   formatDate(date) {
-    console.log(date);
     let data = new Date(date);
 
     let day = data.getDate();
@@ -282,8 +274,18 @@ class TransactionsPage {
    * используя getTransactionHTML
    * */
   renderTransactions(data) {
+
+    if (data.length === 0 || !!this.element.querySelector('.transaction')) {
+
+      for (let elem of this.element.querySelectorAll('.transaction')) {
+        elem.remove();
+      }
+
+    }
+
     for (let item of Array.from(data)) {
       this.element.querySelector('.content').insertAdjacentHTML('beforeend', this.getTransactionHTML(item));
     }
+
   }
 }

@@ -33,14 +33,7 @@ class Entity {
       responseType: 'json',
       data,
       callback: (err, response) => {
-
-        if (response.success === true) {
-          App.getModal('createAccount').close();
-          App.getModal('newIncome').close();
-          App.getModal('newExpense').close();
-          App.update();
-        }
-
+        callback(response);
       }
     });
   }
