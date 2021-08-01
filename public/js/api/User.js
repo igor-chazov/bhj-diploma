@@ -27,11 +27,6 @@ class User {
    * из локального хранилища
    * */
   static current() {
-
-    if (JSON.parse(localStorage.getItem('user')) === null) {
-      return;
-    }
-
     return JSON.parse(localStorage.getItem('user'));
   }
 
@@ -46,7 +41,7 @@ class User {
       responseType: 'json',
       callback: (err, response) => {
 
-        if (response.success === true) {
+        if (response.success) {
           this.setCurrent(response.user);
         } else {
           this.unsetCurrent();
@@ -73,26 +68,9 @@ class User {
 
         if (response && response.user) {
           this.setCurrent(response.user);
-          App.getForm('login').element.reset();
-          App.setState('user-logged');
-          App.getModal('login').close();
-        } else {
-          App.getForm('login').element.reset();
-
-          if (App.getForm('login').element.lastElementChild.matches('.error')) {
-            App.getForm('login').element.lastElementChild.remove();
-          }
-
-          showLoginError();
-
-          function showLoginError() {
-            let div = document.createElement('div');
-            div.className = 'error';
-            div.innerHTML = response.error;
-            App.getForm('login').element.append(div);
-          }
         }
 
+        callback(response);
       }
     });
   }
@@ -113,26 +91,9 @@ class User {
 
         if (response && response.user) {
           this.setCurrent(response.user);
-          App.getForm('register').element.reset();
-          App.setState('user-logged');
-          App.getModal('register').close();
-        } else {
-          App.getForm('register').element.reset();
-
-          if (App.getForm('register').element.lastElementChild.matches('.error')) {
-            App.getForm('register').element.lastElementChild.remove();
-          }
-
-          showLoginError();
-
-          function showLoginError() {
-            let div = document.createElement('div');
-            div.className = 'error';
-            div.innerHTML = response.error;
-            App.getForm('register').element.append(div);
-          }
         }
 
+        callback(response);
       }
     });
   }
@@ -141,20 +102,18 @@ class User {
    * Производит выход из приложения. После успешного
    * выхода необходимо вызвать метод User.unsetCurrent
    * */
-  static logout() {
+  static logout(callback) {
     createRequest({
       url: this.URL + '/logout',
       method: 'POST',
       responseType: 'json',
       callback: (err, response) => {
 
-        if (response.success === true) {
+        if (response.success) {
           this.unsetCurrent();
-          App.setState('init');
-        } else {
-          console.log(response.error);
         }
 
+        callback(response);
       }
     });
   }

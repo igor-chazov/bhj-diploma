@@ -6,38 +6,54 @@ const createRequest = (options = {}) => {
   const { url, data, method, responseType, callback } = options;
   let xhr = new XMLHttpRequest;
   xhr.responseType = responseType;
+  let formData, urlSaerch;
 
   if (method.toLowerCase() == "get") {
-    try {
 
-      if (data) {
-        const { user_id, id } = data;
-        xhr.open(method, url + `?user_id=${user_id}&account_id=${id}`);
-      } else {
-        xhr.open(method, url);
-      }
+    if (data) {
 
-      xhr.send();
-    } catch (e) {
-      callback(e);
-    }
-  } else {
-    try {
-      const formData = new FormData();
+      for (let [key, value] of Object.entries(data)) {
 
-      if (data) {
+        if (key === 'id') key = 'account_id';
 
-        for (const [key, value] of Object.entries(data)) {
-          formData.append(key, value);
+        if (!urlSaerch) {
+          urlSaerch = '/?' + key + '=' + value;
         }
 
+        urlSaerch += '&' + key + '=' + value;
       }
 
-      xhr.open(method, url);
-      xhr.send(formData);
-    } catch (e) {
-      callback(e);
     }
+
+  } else {
+    formData = new FormData();
+
+    if (data) {
+
+      for (const [key, value] of Object.entries(data)) {
+        formData.append(key, value);
+      }
+
+    }
+
+  }
+
+  try {
+
+    if (urlSaerch) {
+      xhr.open(method, url + urlSaerch);
+    } else {
+      xhr.open(method, url);
+    }
+
+    if (formData) {
+      xhr.send(formData);
+    } else {
+      xhr.send();
+    }
+
+  } catch (e) {
+    callback(e);
   }
 
   xhr.onload = function () {

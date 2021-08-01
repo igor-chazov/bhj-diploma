@@ -40,18 +40,7 @@ class Modal {
    * */
   onClose() {
     this.close();
-
-    if (this.element.matches('#modal-new-account')) {
-      App.getForm('createAccount').element.reset();
-    }
-
-    if (this.element.matches('#modal-new-income')) {
-      App.getForm('createIncome').element.reset();
-    }
-
-    if (this.element.matches('#modal-new-expense')) {
-      App.getForm('createExpense').element.reset();
-    }
+    this.element.querySelector('.form').reset();
   }
 
   /**

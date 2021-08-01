@@ -27,9 +27,9 @@ class TransactionsWidget {
    * экземпляра окна
    * */
   registerEvents() {
-    this.element.addEventListener('click', (e) => {
+    this.element.addEventListener('click', (event) => {
       event.preventDefault();
-      const { target } = e;
+      const { target } = event;
 
       if (target.matches('.create-income-button')) {
         App.getModal('newIncome').open();

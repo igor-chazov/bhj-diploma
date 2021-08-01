@@ -29,9 +29,9 @@ class AsyncForm {
    * */
   registerEvents() {
 
-    this.element.onsubmit = (e) => {
-      e.preventDefault();
-      const { target } = e;
+    this.element.onsubmit = (event) => {
+      event.preventDefault();
+      const { target } = event;
       this.formData = new FormData(target);
       this.submit();
     };

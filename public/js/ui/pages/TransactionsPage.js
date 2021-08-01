@@ -35,20 +35,16 @@ class TransactionsPage {
    * TransactionsPage.removeAccount соответственно
    * */
   registerEvents() {
-    this.element.addEventListener('click', (e) => {
+    this.element.addEventListener('click', (event) => {
       event.preventDefault();
-      const { target } = e;
+      const { target } = event;
 
-      if (target.matches('.remove-account') || target.closest('.remove-account')) {
+      if (target.closest('.remove-account')) {
         if (document.querySelector('.content-title').textContent === 'Название счёта') return;
         this.removeAccount();
       }
 
-      if (target.closest('.transaction_income') && (target.matches('.transaction__remove') || target.matches('.fa-trash'))) {
-        this.removeTransaction(target.closest('.transaction__remove').dataset.id);
-      }
-
-      if (target.closest('.transaction_expense') && (target.matches('.transaction__remove') || target.matches('.fa-trash'))) {
+      if (target.closest('.transaction__remove')) {
         this.removeTransaction(target.closest('.transaction__remove').dataset.id);
       }
 
@@ -96,7 +92,7 @@ class TransactionsPage {
       element.prepend(div);
     }
 
-    document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+    document.getElementById('modal__closeOk').addEventListener('click', () => {
 
       if (!document.querySelector('#modal__closeOk')) return;
 
@@ -105,7 +101,7 @@ class TransactionsPage {
       const { account_id } = this.lastOptions;
       Account.remove({ name: name, id: account_id }, response => {
 
-        if (response.success === true) {
+        if (response.success) {
           App.updateWidgets();
         }
 
@@ -153,13 +149,13 @@ class TransactionsPage {
       element.prepend(div);
     }
 
-    document.getElementById('modal__closeOk').addEventListener('click', (e) => {
+    document.getElementById('modal__closeOk').addEventListener('click', () => {
 
       if (!document.querySelector('#modal__closeOk')) return;
       document.getElementById('modal').remove();
       Transaction.remove({ id: id }, response => {
 
-        if (response.success === true) {
+        if (response.success) {
           this.update();
           App.update();
         }
@@ -182,12 +178,12 @@ class TransactionsPage {
     const { account_id } = this.lastOptions;
     Account.get(account_id, response => {
 
-      if (response.success === true) {
+      if (response.success) {
         const { name } = response.data;
         this.renderTitle(name);
         Transaction.list(response.data, response => {
 
-          if (response.success === true) {
+          if (response.success) {
             const { data } = response;
             this.renderTransactions(data);
           }

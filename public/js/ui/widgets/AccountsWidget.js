@@ -33,9 +33,9 @@ class AccountsWidget {
    * */
   registerEvents() {
     this.element.style.userSelect = 'none';
-    this.element.addEventListener('click', (e) => {
+    this.element.addEventListener('click', (event) => {
       event.preventDefault();
-      const { target } = e;
+      const { target } = event;
 
       if (target.matches('.create-account')) {
         App.getModal('createAccount').open();
@@ -63,9 +63,9 @@ class AccountsWidget {
 
     Account.list(null, response => {
 
-      if (response.success === true) {
+      if (response.success) {
         this.clear();
-        this.renderItem(response.data);
+        this.renderItems(response.data);
       }
 
     });
@@ -126,7 +126,7 @@ class AccountsWidget {
    * AccountsWidget.getAccountHTML HTML-код элемента
    * и добавляет его внутрь элемента виджета
    * */
-  renderItem(data) {
+  renderItems(data) {
 
     for (let item of Array.from(data)) {
       this.element.insertAdjacentHTML('beforeend', this.getAccountHTML(item));
