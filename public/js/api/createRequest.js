@@ -39,19 +39,8 @@ const createRequest = (options = {}) => {
   }
 
   try {
-
-    if (urlSaerch) {
-      xhr.open(method, url + urlSaerch);
-    } else {
-      xhr.open(method, url);
-    }
-
-    if (formData) {
-      xhr.send(formData);
-    } else {
-      xhr.send();
-    }
-
+    xhr.open(method, url + (urlSaerch || ''));
+    xhr.send(formData || null);
   } catch (e) {
     callback(e);
   }
